@@ -1,7 +1,6 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-set "PATH=C:\Users\User\.gemini\antigravity\brain\78c526eb-fb16-4cb3-b952-27617fa29fa4\scratch\node\node-v22.14.0-win-x64;C:\Users\User\.gemini\antigravity\brain\78c526eb-fb16-4cb3-b952-27617fa29fa4\scratch\mingit\cmd;C:\Users\User\.gemini\antigravity\brain\78c526eb-fb16-4cb3-b952-27617fa29fa4\scratch\gh\bin;%PATH%"
 
 echo ========================================================
 echo   Publishing Burgercord to GitHub
@@ -9,10 +8,18 @@ echo   Target: https://github.com/handleSendMessage/burgercord
 echo ========================================================
 echo.
 
+where gh >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [Burgercord] GitHub CLI (gh) is not found in PATH.
+    echo Please install it from https://cli.github.com
+    pause
+    exit /b 1
+)
+
 call gh auth status >nul 2>&1
 if %errorlevel% neq 0 (
     echo [Burgercord] GitHub authentication required.
-    echo Opening browser to log into your GitHub account (handleSendMessage)...
+    echo Opening browser to log into your GitHub account...
     call gh auth login -w -p https -h github.com
 )
 
