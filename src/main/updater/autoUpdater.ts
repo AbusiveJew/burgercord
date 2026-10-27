@@ -127,6 +127,7 @@ export async function checkForUpdatesOnBoot(isBoot = true): Promise<AutoUpdateSt
 
         if (filesToUpdate.length === 0) {
             status.updateAvailable = false;
+            status.updateAppliedOnBoot = false;
             console.log(`[Burgercord AutoUpdater] Up to date (${status.currentVersion} @ ${status.currentHash}).`);
             return { ...status };
         }

@@ -1,88 +1,42 @@
 /*
- * Vencord, a modification for Discord's desktop app
- * Copyright (c) 2022 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Burgercord, a high-performance & token-hardened Discord client mod
+ * Copyright (c) 2026 Burgercord and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import { fetchBuffer, fetchJson } from "@main/utils/http";
-import { IpcEvents } from "@shared/IpcEvents";
-import { VENCORD_USER_AGENT } from "@shared/vencordUserAgent";
 import { ipcMain } from "electron";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-
-import gitHash from "~git-hash";
+import { IpcEvents } from "@shared/IpcEvents";
 import gitRemote from "~git-remote";
+import { checkForUpdatesOnBoot } from "./autoUpdater";
+import { serializeErrors } from "./common";
 
-import { serializeErrors, VENCORD_FILES } from "./common";
-
-const API_BASE = `https://api.github.com/repos/${gitRemote}`;
-let PendingUpdates = [] as [string, string][];
-
-async function githubGet<T = any>(endpoint: string) {
-    return fetchJson<T>(API_BASE + endpoint, {
-        headers: {
-            Accept: "application/vnd.github+json",
-            // "All API requests MUST include a valid User-Agent header.
-            // Requests with no User-Agent header will be rejected."
-            "User-Agent": VENCORD_USER_AGENT
-        }
-    });
-}
-
+// Check if any files actually differ from remote SHA-256 manifest
 async function calculateGitChanges() {
-    const isOutdated = await fetchUpdates();
-    if (!isOutdated) return [];
-
-    const data = await githubGet(`/compare/${gitHash}...HEAD`);
-
-    return data.commits.map((c: any) => ({
-        // github api only sends the long sha
-        hash: c.sha.slice(0, 7),
-        author: c.author?.login ?? c.commit?.author?.name ?? "Unknown Author",
-        message: c.commit.message.split("\n")[0]
-    }));
+    try {
+        const res = await checkForUpdatesOnBoot(false);
+        if (!res.updateAvailable) {
+            return [];
+        }
+        return [{
+            hash: res.remoteHash ?? "update",
+            author: "Burgercord",
+            message: `Burgercord update ${res.remoteVersion ?? "available"}`
+        }];
+    } catch {
+        return [];
+    }
 }
 
 async function fetchUpdates() {
-    const data = await githubGet("/releases/latest");
-
-    const hash = data.name.slice(data.name.lastIndexOf(" ") + 1);
-    if (hash === gitHash)
+    try {
+        const res = await checkForUpdatesOnBoot(false);
+        return Boolean(res.updateAvailable);
+    } catch {
         return false;
-
-    data.assets.forEach(({ name, browser_download_url }) => {
-        if (VENCORD_FILES.some(s => name.startsWith(s))) {
-            PendingUpdates.push([name, browser_download_url]);
-        }
-    });
-
-    return true;
+    }
 }
 
 async function applyUpdates() {
-    const fileContents = await Promise.all(PendingUpdates.map(async ([name, url]) => {
-        const contents = await fetchBuffer(url);
-        return [join(__dirname, name), contents] as const;
-    }));
-
-    await Promise.all(fileContents.map(async ([filename, contents]) =>
-        writeFile(filename, contents))
-    );
-
-    PendingUpdates = [];
     return true;
 }
 
