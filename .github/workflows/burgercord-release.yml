@@ -1,0 +1,69 @@
+name: Burgercord Release & Auto-Updater Publish
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Package Burgercord Release
+        run: node scripts/build/packageRelease.mjs
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release-assets
+          cp dist/burgercord-manifest.json release-assets/
+          cp dist/patcher.js release-assets/
+          cp dist/preload.js release-assets/
+          cp dist/renderer.js release-assets/
+          cp dist/renderer.css release-assets/
+          cp dist/burgercord.ico release-assets/
+          cp dist/burgercord.png release-assets/
+          cp BurgercordInstaller.bat release-assets/
+          zip -r release-assets/burgercord-dist.zip dist/
+
+      - name: Publish / Update Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Burgercord Latest Release"
+          body: |
+            ## 🍔 Burgercord Latest Release
+            Automatic build generated for commit `${{ github.sha }}`.
+
+            ### Assets for Auto-Updater:
+            - `burgercord-manifest.json` (SHA-256 verification manifest)
+            - `patcher.js`, `preload.js`, `renderer.js`, `renderer.css`
+            - `burgercord.ico`, `burgercord.png`
+            - `BurgercordInstaller.bat` (One-click Windows Installer)
+          draft: false
+          prerelease: false
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

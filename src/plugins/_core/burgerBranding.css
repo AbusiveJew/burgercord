@@ -1,0 +1,43 @@
+/*
+ * Burgercord, a high-performance & token-hardened Discord client mod
+ * Copyright (c) 2026 Burgercord and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/* Replace top-left Home / Direct Messages Clyde icon with the Burgercord icon */
+[data-list-item-id="guildsnav___home"] > div > svg,
+[aria-label="Direct Messages"] [class*="childWrapper"] > svg {
+    display: none !important;
+}
+
+[data-list-item-id="guildsnav___home"] > div,
+[aria-label="Direct Messages"] [class*="childWrapper"] {
+    background-image: var(--burgercord-logo-url) !important;
+    background-size: 76% 76% !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Replace top-left window frame Discord wordmark with Burgercord */
+[class*="wordmarkWindows"] > svg,
+[class*="wordmark_"] > svg {
+    display: none !important;
+}
+
+[class*="wordmarkWindows"]::after,
+[class*="wordmark_"]::after {
+    content: "BURGERCORD";
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-display, "gg sans", sans-serif);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted, #949ba4);
+    padding-left: 20px;
+    background-image: var(--burgercord-logo-url);
+    background-size: 14px 14px;
+    background-position: left center;
+    background-repeat: no-repeat;
+}

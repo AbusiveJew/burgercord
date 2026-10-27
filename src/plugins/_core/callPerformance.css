@@ -1,0 +1,12 @@
+/*
+ * Burgercord, a high-performance & token-hardened Discord client mod
+ * Copyright (c) 2026 Burgercord and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/* When Burgercord is unfocused during an active call, eliminate expensive speaking-ring box-shadow repaints & transitions */
+html.burgercord-call-unfocused [class*="avatarSpeaking_"],
+html.burgercord-call-unfocused [class*="border_"][class*="speaking_"] {
+    transition: none !important;
+    animation: none !important;
+}

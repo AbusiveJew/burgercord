@@ -1,0 +1,16 @@
+/*
+ * Burgercord, a high-performance & token-hardened Discord client mod
+ * Copyright (c) 2026 Burgercord and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+/* Accelerate large channel message lists and member lists via CSS layout/paint containment */
+html.burgercord-css-containment [class*="messageListItem_"] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 56px;
+}
+
+html.burgercord-css-containment [class*="member_"] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 44px;
+}
