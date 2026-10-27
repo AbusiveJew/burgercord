@@ -46,7 +46,7 @@ async function getRepo() {
             .replace(/git@(.+):/, "https://$1/")
             .replace(/\.git$/, "");
     } catch {
-        return "https://github.com/handleSendMessage/burgercord";
+        return "https://github.com/AbusiveJew/burgercord";
     }
 }
 

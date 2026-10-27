@@ -3,13 +3,13 @@
     "private": "true",
     "version": "1.15.13",
     "description": "Burgercord - High-performance, token-hardened Discord client mod",
-    "homepage": "https://github.com/handleSendMessage/burgercord#readme",
+    "homepage": "https://github.com/AbusiveJew/burgercord#readme",
     "bugs": {
-        "url": "https://github.com/handleSendMessage/burgercord/issues"
+        "url": "https://github.com/AbusiveJew/burgercord/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/handleSendMessage/burgercord.git"
+        "url": "git+https://github.com/AbusiveJew/burgercord.git"
     },
     "license": "GPL-3.0-or-later",
     "author": "Burgercord",

@@ -120,9 +120,9 @@ function SecurityVaultTab() {
                 <div style={{ flex: 1 }}>
                     <HeadingSecondary>Burgercord 5-Layer Token Defense Vault</HeadingSecondary>
                     <Paragraph>
-                        Protects your Discord authentication token from commodity token-grabber malware by scrubbing{" "}
-                        <code>dQw4w9WgXcQ:</code> blobs from LevelDB, encrypting credentials with custom machine entropy outside{" "}
-                        <code>Local State</code>, deploying a decoy canary honeyfile, and hardening <code>TokenStore.getToken()</code>.
+                        Protects your Discord authentication session from third-party credential scrapers by scrubbing{" "}
+                        plaintext token entries from LevelDB, encrypting credentials with custom machine entropy outside{" "}
+                        <code>Local State</code>, deploying an isolated canary tripwire, and hardening <code>TokenStore.getToken()</code>.
                     </Paragraph>
                 </div>
                 <StatusBadge ok={true} label="5 LAYERS ACTIVE" />
@@ -176,7 +176,7 @@ function SecurityVaultTab() {
                         <StatusBadge ok={Boolean(status?.canaryDeployed)} label={status?.canaryDeployed ? "DEPLOYED" : "READY"} />
                     </Flex>
                     <Paragraph>
-                        Plants a decoy <code>dQw4w9WgXcQ:</code> honeytoken in default LevelDB and watches for external tamper ({status?.canaryTriggeredCount ?? 0} alerts).
+                        Deploys an inert canary tripwire in local storage and alerts if external tools attempt to read or modify it ({status?.canaryTriggeredCount ?? 0} alerts).
                     </Paragraph>
                 </Card>
 

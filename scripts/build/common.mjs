@@ -243,7 +243,7 @@ export const gitRemotePlugin = {
                         .replace("git@github.com:", "")
                         .replace(/.git$/, "");
                 } catch {
-                    remote = "handleSendMessage/burgercord";
+                    remote = "AbusiveJew/burgercord";
                 }
             }
 

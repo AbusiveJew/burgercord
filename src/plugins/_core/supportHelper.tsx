@@ -82,7 +82,7 @@ async function generateDebugInfoMessage() {
 
     const info = {
         Burgercord:
-            `v${VERSION} • [${gitHash}](<https://github.com/handleSendMessage/burgercord/commit/${gitHash}>)` +
+            `v${VERSION} • [${gitHash}](<https://github.com/AbusiveJew/burgercord/commit/${gitHash}>)` +
             `${SettingsPlugin.additionalInfo} - ${Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(BUILD_TIMESTAMP)}`,
         Client: `${RELEASE_CHANNEL} ~ ${client}`,
         Platform: navigator.platform

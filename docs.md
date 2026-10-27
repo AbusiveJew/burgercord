@@ -47,7 +47,7 @@ flowchart TD
     end
 
     subgraph Renderer["Discord Renderer Process"]
-        StorageProxy["localStorage / LevelDB Scrubbing Proxy\n(Strips dQw4w9WgXcQ: from Disk)"]
+        StorageProxy["localStorage / LevelDB Scrubbing Proxy\n(Strips plaintext token blobs from Disk)"]
         TokenGuard["Hardened TokenStore & Webpack Guard\n(Call-Stack & Origin Verification)"]
     end
 
@@ -56,24 +56,24 @@ flowchart TD
 ```
 
 #### Layer 1: LevelDB Token Scrubbing & Out-of-Band Vault Storage
-- **Problem**: Anything left in `%APPDATA%\discord\Local Storage\leveldb` with the `dQw4w9WgXcQ:` prefix is trivially found by file scanners.
+- **Problem**: Anything left unencrypted in `%APPDATA%\discord\Local Storage\leveldb` is trivially accessible to third-party tools.
 - **Solution**:
   1. In the Renderer preload/early init, intercept `window.localStorage.getItem` / `setItem` for the `"token"` and `"tokens"` keys (or hook Discord's `safeStorage` / `TokenStore` persistence module).
-  2. When Discord writes the encrypted token to `localStorage`, Burgercord intercepts it, sends it over a dedicated, nonce-authenticated IPC channel to the Main process, and **deletes/scrubs the real entry from Chromium's LevelDB** so `.ldb` and `.log` files on disk never contain the real `dQw4w9WgXcQ:` token string.
+  2. When Discord writes the encrypted token to `localStorage`, Burgercord intercepts it, sends it over a dedicated, nonce-authenticated IPC channel to the Main process, and **deletes/scrubs the real entry from Chromium's LevelDB** so `.ldb` and `.log` files on disk never contain raw credentials.
   3. On startup, the Renderer retrieves the token from the Main process vault only during the initial authentication hydration phase.
 
 #### Layer 2: Custom-Entropy DPAPI + Installation-Specific Storage Path
-- **Problem**: Commodity grabbers read `%APPDATA%\discord\Local State` and call `CryptUnprotectData` with `pOptionalEntropy = NULL`.
+- **Problem**: Commodity scrapers read `%APPDATA%\discord\Local State` and call `CryptUnprotectData` with `pOptionalEntropy = NULL`.
 - **Solution**:
   1. Store Burgercord's encrypted token vault in an installation-specific randomized path outside the standard `%APPDATA%\discord` tree (derived per-machine and configurable by the user), with restrictive file ACLs.
   2. Re-encrypt the token in the Main process using **AES-256-GCM** where the key is protected by:
      - **Custom Secondary Entropy** (`pOptionalEntropy` in DPAPI combined with a split key stored in the Windows Credential Manager / OS Keychain, or an optional user PIN / Windows Hello prompt on cold boot).
-     - Even if a basic token grabber locates the vault file, standard `Local State` + zero-entropy `CryptUnprotectData` decryption routines will fail with an authentication tag mismatch.
+     - Even if a basic scanner locates the vault file, standard `Local State` + zero-entropy `CryptUnprotectData` decryption routines will fail with an authentication tag mismatch.
 
 #### Layer 3: Decoy "Honey-Token" & Access Detection in Default LevelDB
-- **Problem**: You want to know immediately if a token grabber runs on your machine.
+- **Problem**: You want to know immediately if an unauthorized process accesses local Discord storage on your machine.
 - **Solution**:
-  1. Leave a **syntactically valid decoy `dQw4w9WgXcQ:...` blob** inside the standard `%APPDATA%\discord\Local Storage\leveldb` directory that decrypts via `Local State` to a **Canary Token** (an inactive/revoked format or a local tripwire identifier).
+  1. Leave an inert decoy entry inside the standard `%APPDATA%\discord\Local Storage\leveldb` directory that decrypts via `Local State` to a **Canary Token** (an inactive tripwire identifier).
   2. Monitor `discord_desktop_core/index.js` and `Local State` for unexpected external access or modifications and display an immediate desktop security alert if tampering is detected.
 
 #### Layer 4: Renderer `TokenStore` & `webpackChunkdiscord_app` Call-Stack Hardening
@@ -356,14 +356,14 @@ When you send the Burgercord logo and give the go-ahead to build, we will execut
    - `persistAfterUpdates.ts`: Hooks Discord's `"host-updated"` and `"before-quit"` events so when Discord itself updates, Burgercord automatically re-applies its `app.asar` stub and `burgercord.ico` without user intervention.
 3. Implement **Token Security in Main (`src/main/security/`)**:
    - `tokenVault.ts`: Encrypts and stores the Discord token using DPAPI with custom application entropy (`CryptProtectData` via Node native/FFI or `safeStorage` + secondary AES-256-GCM key derivation) in an isolated vault file outside `Local Storage\leveldb`.
-   - `canaryHoneyfile.ts`: Maintains a decoy `dQw4w9WgXcQ:` token entry in the default LevelDB folder and watches for external process reads/modifications.
+   - `canaryHoneyfile.ts`: Maintains an inert decoy token entry in the default LevelDB folder and watches for external process reads/modifications.
    - `integrityCheck.ts`: Verifies `discord_desktop_core/index.js` on startup and watches it in real time with `fs.watch`, auto-healing and alerting on tamper attempts.
 4. Implement **Call Booster (`src/main/callBooster.ts`)** and CSP header rewriting (`src/main/csp/`).
 
 ### Phase 3: Preload & Renderer Token Hardening (`src/preload.ts` & `src/security/`)
 1. In `src/preload.ts`, establish the `contextBridge` API (`BurgercordNative` / `VencordNative`) with a per-session cryptographic nonce for Token Vault IPC calls.
 2. Implement `src/security/tokenGuard.ts`:
-   - Proxy `window.localStorage` to intercept token writes, forward them to `tokenVault.ts` in the Main process, and scrub the `dQw4w9WgXcQ:` blob from LevelDB on disk.
+   - Proxy `window.localStorage` to intercept token writes, forward them to `tokenVault.ts` in the Main process, and scrub raw credential blobs from LevelDB on disk.
    - Wrap Discord's `TokenStore.getToken()` with stack-frame verification so console scripts or unverified injections cannot read the raw token.
 3. Implement `src/security/chunkGuard.ts`:
    - Monitor `window.webpackChunkdiscord_app.push` after initial bundle load to detect and block unauthorized module-scraping payloads.

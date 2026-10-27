@@ -50,7 +50,7 @@ function ContributorModal({ user, modalProps }: { user: User; modalProps: Render
             .sort((a, b) => Number(a.required ?? false) - Number(b.required ?? false));
     }, [user.id, user.username]);
 
-    const ContributedHyperLink = <Link href="https://github.com/handleSendMessage/burgercord">contributed</Link>;
+    const ContributedHyperLink = <Link href="https://github.com/AbusiveJew/burgercord">contributed</Link>;
 
     return (
         <Modal

