@@ -197,7 +197,7 @@ export default definePlugin({
                 openModal(props => (
                     <ErrorBoundary noop onError={() => {
                         props.onClose();
-                        VencordNative.native.openExternal("https://github.com/sponsors/Vendicated");
+                        VencordNative.native.openExternal("https://www.paypal.com/donate/?business=tommieae%40gmail.com&no_recurring=0&currency_code=USD");
                     }}>
                         <Modal
                             {...props}
@@ -212,7 +212,7 @@ export default definePlugin({
                                 >
                                     <Flex justifyContent="center" alignItems="center" gap="0.5em">
                                         <Heart />
-                                        Vencord Donor
+                                        Burgercord Supporter
                                     </Flex>
                                 </Forms.FormTitle>
                             }
@@ -234,10 +234,10 @@ export default definePlugin({
                                 </Flex>
                                 <div style={{ padding: "1em" }}>
                                     <Forms.FormText>
-                                        This Badge is a special perk for Vencord Donors
+                                        This Badge is a special perk for Burgercord Supporters
                                     </Forms.FormText>
                                     <Forms.FormText className={Margins.top20}>
-                                        Please consider supporting the development of Vencord by becoming a donor. It would mean a lot!!
+                                        Please consider supporting the development of Burgercord by becoming a donor. It would mean a lot!!
                                     </Forms.FormText>
                                 </div>
                             </div>

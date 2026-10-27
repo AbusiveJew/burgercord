@@ -20,9 +20,12 @@ import { Heart } from "@components/Heart";
 import { ButtonProps } from "@vencord/discord-types";
 import { Button } from "@webpack/common";
 
+export const BURGERCORD_PAYPAL_DONATE_URL = "https://www.paypal.com/donate/?business=tommieae%40gmail.com&no_recurring=0&currency_code=USD";
+
 export default function DonateButton({
     look = Button.Looks.LINK,
     color = Button.Colors.TRANSPARENT,
+    children = "Donate with PayPal",
     ...props
 }: Partial<ButtonProps>) {
     return (
@@ -30,11 +33,11 @@ export default function DonateButton({
             {...props}
             look={look}
             color={color}
-            onClick={() => VencordNative.native.openExternal("https://github.com/sponsors/Vendicated")}
+            onClick={() => VencordNative.native.openExternal(BURGERCORD_PAYPAL_DONATE_URL)}
             className="vc-donate-button"
         >
             <Heart />
-            Donate
+            {children}
         </Button>
     );
 }
