@@ -17,8 +17,6 @@
 */
 
 import { initBootAutoUpdater } from "./autoUpdater";
+import "./http";
 
 initBootAutoUpdater();
-
-if (!IS_UPDATER_DISABLED)
-    require(IS_STANDALONE ? "./http" : "./git");

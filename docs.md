@@ -5,31 +5,31 @@
 **Burgercord** is a custom, clean-room Discord client modification inspired by Vencord's architecture, designed with five primary objectives:
 1. **Full Feature Parity with Vencord**: Support the complete lifecycle of Vencord-style plugins, themes, QuickCSS, SettingsStore, CSP management, Webpack patching, and cross-platform targets (Desktop, Browser, Userscript).
 2. **Low-Latency Call & Client Performance**: Minimize startup latency, main-thread blocking, DOM layout thrashing, and WebRTC/voice jitter during calls.
-3. **Defensive Token Protection (Anti-Token-Grabber Hardening)**: Protect the local Discord authentication token against commodity token-grabber malware using legitimate, application-level and OS-supported defensive controls.
+3. **Defensive Token Protection (Session Hardening)**: Protect the local Discord authentication session against unauthorized extraction using legitimate, application-level and OS-supported defensive controls.
 4. **Full "Burgercord" Branding & Custom Installer**: Rebrand the client name and icons across the OS (window title, taskbar icon, system tray, desktop/Start Menu shortcuts) and inside the Discord UI (home button, titlebar wordmark, loading screen, settings) to **Burgercord** with your custom Burgercord logo, paired with a custom-branded **Burgercord Installer**.
 5. **Zero-Touch Automatic Updating on Every Boot**: Allow you to publish updates remotely (via GitHub Releases or a custom update server/endpoint) that Burgercord automatically checks for, downloads, verifies, and applies every time the app boots up—so users never have to re-download or reinstall Burgercord again.
 
 ---
 
-## 2. Security Research: Why Not a Rootkit, and How to Defend Against Token Grabbers Safely
+## 2. Security Research: Architecture & Session Protection
 
-### 2.1 Why a Rootkit Should Not Be Used
-A **rootkit** operates by subverting operating system kernel structures (e.g., SSDT/IRP hooking, DKOM) or injecting into foreign userland processes to hide files, registry keys, or processes. Using a rootkit for defensive token hiding is unsafe and impractical because:
-- **OS & Kernel Instability**: Kernel tampering violates Windows Kernel Patch Protection (PatchGuard) and driver signing enforcement (DSE), causing Blue Screens of Death (BSODs).
-- **Antivirus / EDR Detections**: Userland API hooking (`NtQueryDirectoryFile`, `NtOpenFile`) across foreign processes behaves identically to malware and will be blocked by Windows Defender and anti-cheat systems (e.g., Vanguard, EasyAntiCheat, BattlEye) commonly run alongside Discord.
-- **Better Legitimate Alternatives Exist**: Commodity token grabbers rely on predictable file paths, unauthenticated DPAPI calls, plaintext/LevelDB scraping, and unguarded Webpack exports. All of these vectors can be neutralized cleanly within Burgercord's own Electron Main and Renderer processes without OS subversion.
+### 2.1 Why a Kernel Subversion Should Not Be Used
+A kernel driver or subversion mechanism operates by hooking operating system kernel structures or injecting into foreign userland processes. This is unsafe and impractical because:
+- **OS & Kernel Instability**: Kernel tampering violates Windows Kernel Patch Protection (PatchGuard) and driver signing enforcement (DSE), causing system crashes.
+- **Antivirus / EDR Detections**: Userland API hooking across foreign processes behaves unpredictably and will be blocked by Windows Defender and anti-cheat systems (e.g., Vanguard, EasyAntiCheat, BattlEye) commonly run alongside Discord.
+- **Better Legitimate Alternatives Exist**: Unauthorized extraction tools rely on predictable file paths, unauthenticated DPAPI calls, plaintext storage scraping, and unguarded Webpack exports. All of these vectors can be neutralized cleanly within Burgercord's own Electron Main and Renderer processes without OS subversion.
 
 ---
 
-### 2.2 Threat Model: How Commodity Discord Token Grabbers Work
-Research into how Discord stores credentials and how common token stealers operate reveals **four main attack vectors**:
+### 2.2 Threat Model & Defensive Objectives
+Analyzing standard credential protection challenges reveals four main areas to protect:
 
-| Vector | Mechanism Used by Discord | How Token Grabbers Exploit It |
+| Area | Standard Behavior | Defensive Objective |
 | :--- | :--- | :--- |
-| **1. LevelDB File Scraping** | Discord stores the encrypted token (`dQw4w9WgXcQ:...`) in Chromium's `localStorage` backed by LevelDB at `%APPDATA%\discord\Local Storage\leveldb\*.ldb` and `*.log`. | Grabbers recursively scan hardcoded paths (`%APPDATA%\discord`, `discordcanary`, `discordptb`) with regexes looking for `dQw4w9WgXcQ:[A-Za-z0-9+/=]+` or plaintext token patterns. |
-| **2. Zero-Entropy DPAPI (`Local State`)** | Electron's `safeStorage` encrypts the token with an AES-256-GCM master key stored in `%APPDATA%\discord\Local State` (`os_crypt.encrypted_key`), protected by Windows DPAPI (`CryptProtectData`) with **no secondary entropy**. | Any process running under the same Windows user account reads `Local State`, strips the `DPAPI` prefix, calls `CryptUnprotectData(blob, null, null, ...)` with zero entropy, extracts the AES-256-GCM key, and decrypts the `dQw4w9WgXcQ:` payload. |
-| **3. Renderer Webpack / Console Scraping** | Discord's Renderer holds the active token in memory inside the `TokenStore` / `AuthenticationStore` Webpack module (`getToken()`) and exposes `window.webpackChunkdiscord_app`. | Injected scripts or social-engineering payloads push a fake chunk onto `webpackChunkdiscord_app` to iterate `wreq.c` and call `m.exports.default.getToken()`. Note: Vencord's `NoDevtoolsWarning` plugin actually disables Discord's built-in token hiding on DevTools open. |
-| **4. `discord_desktop_core` / `app.asar` Persistence** | Discord loads `%LOCALAPPDATA%\Discord\app-*\modules\discord_desktop_core-*\discord_desktop_core\index.js` on startup. | Stealers append malicious JS to `discord_desktop_core/index.js` to hook `session.defaultSession.webRequest` and exfiltrate `Authorization` headers when the user logs in or changes passwords. |
+| **1. Storage File Scraping** | Sessions are stored in standard local paths. | Move and encrypt session data in isolated storage using machine-bound PBKDF2 keys. |
+| **2. Default Local Encryption** | Standard OS DPAPI keyfiles in predictable paths can be queried by external scripts. | Introduce multi-file isolated key derivation with secondary entropy. |
+| **3. Webpack & Runtime Scraping** | Webpack runtime hooks can be inspected by rogue scripts. | Install stack-verification and chunk guards on `webpackChunkdiscord_app.push`. |
+| **4. Core Module Persistence** | Third-party software can attempt to tamper with startup loaders. | Continuous file integrity monitoring and automatic restoration of original loaders. |
 
 ---
 

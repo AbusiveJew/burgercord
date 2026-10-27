@@ -38,15 +38,11 @@ export function deployCanaryHoneyfile() {
         mkdirSync(storageDir, { recursive: true });
 
         const canaryFile = join(storageDir, "burgercord_token_canary.log");
-        const fakeEncryptedBlob = Buffer.from(
-            "BURGERCORD_CANARY_HONEYTOKEN_INVALID_DO_NOT_USE_" + crypto.randomBytes(24).toString("hex"),
-            "utf-8"
-        ).toString("base64");
+        const fakeEncryptedBlob = crypto.randomBytes(32).toString("hex");
 
         expectedCanaryPayload = [
-            "https://discord.com\x00\x01tokens",
-            `{"canary":"dQw4w9WgXcQ:${fakeEncryptedBlob}"}`,
-            `token\x00"dQw4w9WgXcQ:${fakeEncryptedBlob}"`
+            `burgercord_canary_marker=${fakeEncryptedBlob}`,
+            "burgercord_guard_status=active"
         ].join("\n");
 
         writeFileSync(canaryFile, expectedCanaryPayload, "utf-8");

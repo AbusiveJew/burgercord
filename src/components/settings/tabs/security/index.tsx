@@ -85,15 +85,15 @@ function SecurityVaultTab() {
     };
 
     const handleSimulateTokenGrabAttempt = async () => {
-        // Simulate an untrusted script attempting to read localStorage.getItem("token")
+        // Simulate an untrusted third-party script attempting to read localStorage.getItem("token")
         const result = window.localStorage.getItem("token");
         await refreshStatus();
         setSelfTestResult(
-            `Simulated Token Grabber Call -> Returned: ${result} (Real token stayed hidden & attempt was logged below!)`
+            `Simulated Unauthorized Script Call -> Returned: ${result} (Real token stayed hidden & attempt was logged below!)`
         );
         showNotification({
-            title: "Burgercord Anti-Token-Grabber",
-            body: "Blocked simulated token read attempt! Returned REDACTED_BY_BURGERCORD.",
+            title: "Burgercord Session Guard",
+            body: "Blocked simulated unauthorized read attempt! Returned REDACTED_BY_BURGERCORD.",
             icon: BURGERCORD_ICON_DATA_URI
         });
     };

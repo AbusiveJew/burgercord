@@ -3,7 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/handleSendMessage/burgercord?style=for-the-badge&color=F09C1F&label=Release)](https://github.com/handleSendMessage/burgercord/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge)](LICENSE)
 
-A high-performance, token-hardened Discord client modification with low-latency call optimization, anti-token-grabber defense, custom burger branding, and automatic boot updates.
+A high-performance, token-hardened Discord client modification with low-latency call optimization, local session vault defense, custom burger branding, and automatic boot updates.
 
 ---
 
@@ -11,11 +11,11 @@ A high-performance, token-hardened Discord client modification with low-latency 
 
 Unlike standard client mods, **Burgercord** comes with built-in performance and security improvements:
 
-### 🛡️ Token Grabber Defense
-- **Two-File Encrypted Vault**: Your login token is encrypted on disk across two separate directories using machine-bound PBKDF2-SHA256 and AES-256-GCM. Stealers querying default LevelDB paths or scraping storage cannot read it.
+### 🛡️ Local Session Vault & Storage Protection
+- **Two-File Encrypted Vault**: Your login session is encrypted on disk across two separate directories using machine-bound PBKDF2-SHA256 and AES-256-GCM. External tools or rogue scripts querying default storage paths cannot read it.
 - **Call-Stack Verification**: Injected scripts, malicious userscripts, and console snippets are blocked when trying to invoke `TokenStore.getToken()` or `localStorage.getItem("token")`.
-- **Anti-Scraper Guard**: Hooks `webpackChunkdiscord_app.push` to block rogue chunk injections commonly used by grabbers.
-- **Integrity Monitor & Auto-Healing**: Watches Discord's `discord_desktop_core/index.js` in real-time and automatically repairs it if malware tries to inject webhooks.
+- **Anti-Scraper Guard**: Hooks `webpackChunkdiscord_app.push` to block rogue chunk scraping injections.
+- **Integrity Monitor & Auto-Healing**: Watches Discord's `discord_desktop_core/index.js` in real-time and automatically repairs it if third-party software tries to tamper with it.
 
 ### 🚀 Low-Latency Call & Client Optimizations
 - **Dynamic Call QoS Booster**: Automatically disables Chromium background throttling and elevates Discord's OS process priority to **Above Normal** during active calls.

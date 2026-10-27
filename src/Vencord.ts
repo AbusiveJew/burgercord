@@ -125,8 +125,8 @@ async function runUpdateCheck() {
         if (!isOutdated) return;
 
         if (Settings.autoUpdate) {
-            await update();
-            if (Settings.autoUpdateNotification) {
+            const updated = await update();
+            if (updated && Settings.autoUpdateNotification) {
                 notify({
                     title: "Burgercord has been updated!",
                     body: "Click here to restart",
