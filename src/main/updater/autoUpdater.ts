@@ -44,7 +44,7 @@ export interface AutoUpdateStatus {
 }
 
 const DEFAULT_UPDATE_ENDPOINT = process.env.BURGERCORD_UPDATE_URL
-    || `https://github.com/${gitRemote || "mrvonderplanitz/burgercord"}/releases/latest/download/burgercord-manifest.json`;
+    || `https://github.com/${gitRemote || "handleSendMessage/burgercord"}/releases/latest/download/burgercord-manifest.json`;
 
 const status: AutoUpdateStatus = {
     enabled: true,

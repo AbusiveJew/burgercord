@@ -197,7 +197,7 @@ export default definePlugin({
                 openModal(props => (
                     <ErrorBoundary noop onError={() => {
                         props.onClose();
-                        VencordNative.native.openExternal("https://www.paypal.com/donate/?business=tommieae%40gmail.com&no_recurring=0&currency_code=USD");
+                        VencordNative.native.openExternal("https://www.paypal.biz/termuxsale");
                     }}>
                         <Modal
                             {...props}

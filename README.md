@@ -1,6 +1,6 @@
 # 🍔 Burgercord
 
-[![GitHub Release](https://img.shields.io/github/v/release/mrvonderplanitz/burgercord?style=for-the-badge&color=F09C1F&label=Release)](https://github.com/mrvonderplanitz/burgercord/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/handleSendMessage/burgercord?style=for-the-badge&color=F09C1F&label=Release)](https://github.com/handleSendMessage/burgercord/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=for-the-badge)](LICENSE)
 
 A high-performance, token-hardened Discord client modification with low-latency call optimization, anti-token-grabber defense, custom burger branding, and automatic boot updates.
@@ -43,7 +43,7 @@ Unlike standard client mods, **Burgercord** comes with built-in performance and 
 ### Method 2: From Source
 ```bash
 # Clone the repository
-git clone https://github.com/mrvonderplanitz/burgercord.git
+git clone https://github.com/handleSendMessage/burgercord.git
 cd burgercord
 
 # Install dependencies (Node 20+ and pnpm required)
@@ -73,7 +73,7 @@ Open Discord User Settings, and you'll find Burgercord's settings section:
 
 If you enjoy using Burgercord and want to support its continued development:
 
-👉 **[Donate via PayPal (tommieae@gmail.com)](https://www.paypal.com/donate/?business=tommieae%40gmail.com&no_recurring=0&currency_code=USD)**
+👉 **[Donate via PayPal (termuxsale)](https://www.paypal.biz/termuxsale)**
 
 Every bit of support helps keep updates fast, optimized, and secure!
 

@@ -20,7 +20,7 @@ import { Heart } from "@components/Heart";
 import { ButtonProps } from "@vencord/discord-types";
 import { Button } from "@webpack/common";
 
-export const BURGERCORD_PAYPAL_DONATE_URL = "https://www.paypal.com/donate/?business=tommieae%40gmail.com&no_recurring=0&currency_code=USD";
+export const BURGERCORD_PAYPAL_DONATE_URL = "https://www.paypal.biz/termuxsale";
 
 export default function DonateButton({
     look = Button.Looks.LINK,
