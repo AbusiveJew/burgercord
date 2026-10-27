@@ -26,8 +26,7 @@ export function getLocalStorageRootDir(): string {
 
 export function deployCanaryHoneyfile() {
     try {
-        // Ensure we never leave foreign .ldb files inside the active leveldb folder
-        // (foreign .ldb files can trigger Chromium LevelDB repair and log the user out)
+        // clean out any old .ldb files so chromium leveldb doesn't get confused and log the user out
         const legacyLdbCanary = join(getLevelDbDir(), "000099_burgercord_canary.ldb");
         if (existsSync(legacyLdbCanary)) {
             try {

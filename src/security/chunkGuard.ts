@@ -24,7 +24,7 @@ export function installWebpackChunkGuard() {
         });
 
         chunkObj.push = function (chunk: any) {
-            // Check if a 3rd element (runtime callback `r => ...`) is passed — the classic token-grabber pattern
+            // check if a runtime callback is passed (common webpack scraping pattern)
             if (Array.isArray(chunk) && typeof chunk[2] === "function") {
                 const stack = new Error().stack;
                 const check = isTrustedCallerStack(stack);

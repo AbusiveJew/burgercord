@@ -12,15 +12,14 @@ import { waitFor } from "@webpack";
 
 export default definePlugin({
     name: "SecurityCenter",
-    description: "Burgercord Two-File Encrypted Token Vault (token.vault.enc + master.key.enc), Anti-Logout Session Persistence, Call-Stack Guard, and Chunk Guard",
+    description: "Burgercord Encrypted Token Vault, Anti-Logout Session Protection, and Chunk Scraper Guard",
     authors: [Devs.Ven],
     required: true,
     startAt: StartAt.Init,
 
     patches: [
         {
-            // Prevents Discord from deleting your token from storage when DevTools is enabled,
-            // which otherwise causes random logouts on restart.
+            // stops discord from wiping tokens if devtools is opened
             find: "setDevtoolsCallbacks",
             replacement: {
                 match: /if\(null==\i\|\|"0\.0\.0"!==\i\.app\.getVersion\(\)\)/,

@@ -38,7 +38,7 @@ export interface SecurityStatus {
 
 const sessionNonce = crypto.randomBytes(32).toString("hex");
 
-// File 1: Encrypted Token Vault File
+// File 1: where the encrypted discord token lives
 const VAULT_FILE = join(SECURITY_VAULT_DIR, "token.vault.enc");
 
 const blockedAccessLog: BlockedAccessEntry[] = [];
@@ -51,18 +51,15 @@ function getKeyStoreDir(): string {
     return dir;
 }
 
-// File 2: Encrypted Master Key File (separate directory from the token vault)
+// File 2: master encryption key, saved separately from the vault file
 function getEncryptedKeyFilePath(): string {
     return join(getKeyStoreDir(), "master.key.enc");
 }
 
-/**
- * Derives a 256-bit Key-Encryption-Key (KEK) using SHA-256 and PBKDF2-HMAC-SHA256
- * bound to this machine's hardware/OS identity.
- */
+// Tie the key derivation to this machine so copied files are useless on other devices
 function deriveMachineKek(salt: Buffer): Buffer {
-    const machineIdentity = [
-        "BURGERCORD_SHA256_KEK_V2",
+    const info = [
+        "BURGERCORD_VAULT_V2",
         os.hostname(),
         os.userInfo().username,
         os.arch(),
@@ -70,21 +67,18 @@ function deriveMachineKek(salt: Buffer): Buffer {
         os.cpus()[0]?.model ?? "burgercord-cpu"
     ].join("|");
 
-    const sha256IdentityDigest = crypto.createHash("sha256").update(machineIdentity, "utf-8").digest();
-    return crypto.pbkdf2Sync(sha256IdentityDigest, salt, 100_000, 32, "sha256");
+    const digest = crypto.createHash("sha256").update(info, "utf-8").digest();
+    return crypto.pbkdf2Sync(digest, salt, 100_000, 32, "sha256");
 }
 
-/**
- * Loads and decrypts the 256-bit Data Encryption Key (DEK) from `master.key.enc`,
- * or generates and encrypts a new one on first run.
- */
+// Grab our master key from disk or make a new one on first run
 function getOrCreateDecryptedMasterKey(): Buffer {
     const keyFilePath = getEncryptedKeyFilePath();
 
     if (existsSync(keyFilePath)) {
         try {
             const raw = readFileSync(keyFilePath);
-            // Format: [magic "BGCK"(4B)] [usedSafeStorage(1B)] [salt(32B)] [iv(12B)] [authTag(16B)] [sha256Digest(32B)] [ciphertext]
+            // Header layout: "BGCK" (4b) + dpapi flag (1b) + salt (32b) + iv (12b) + tag (16b) + sha (32b) + data
             if (raw.length > 97 && raw.subarray(0, 4).toString("ascii") === "BGCK") {
                 const usedSafeStorage = raw[4] === 1;
                 const salt = raw.subarray(5, 37);
@@ -109,11 +103,11 @@ function getOrCreateDecryptedMasterKey(): Buffer {
                 }
             }
         } catch (err) {
-            console.warn("[Burgercord Security] Regenerating master key file after read error:", err);
+            console.warn("[Burgercord Security] Rebuilding master key after read error:", err);
         }
     }
 
-    // Generate a fresh 256-bit DEK and encrypt it into master.key.enc
+    // First run or corrupted file - generate fresh 256-bit key
     const dek = crypto.randomBytes(32);
     const sha256Digest = crypto.createHash("sha256").update(dek).digest();
     const salt = crypto.randomBytes(32);
@@ -177,7 +171,7 @@ export function storeTokenInVault(nonce: string, rawTokenBlob: string): boolean 
         const salt = crypto.randomBytes(32);
         const iv = crypto.randomBytes(12);
 
-        // Derive per-write subkey using HMAC-SHA256(masterKey, salt)
+        // derive ephemeral subkey per write
         const subKey = crypto.createHmac("sha256", masterKey).update(salt).digest();
         const payloadBuf = Buffer.from(rawTokenBlob, "utf-8");
         const payloadSha256 = crypto.createHash("sha256").update(payloadBuf).digest();
@@ -187,7 +181,7 @@ export function storeTokenInVault(nonce: string, rawTokenBlob: string): boolean 
         const encrypted = Buffer.concat([cipher.update(payloadBuf), cipher.final()]);
         const authTag = cipher.getAuthTag();
 
-        // Layout: [magic "BGCV"(4B)] [version 0x02(1B)] [salt(32B)] [iv(12B)] [authTag(16B)] [payloadSha256(32B)] [ciphertext]
+        // format: "BGCV" (4b) + v2 (1b) + salt (32b) + iv (12b) + tag (16b) + sha (32b) + data
         const header = Buffer.from([0x42, 0x47, 0x43, 0x56, 0x02]);
         const vaultBuffer = Buffer.concat([header, salt, iv, authTag, payloadSha256, encrypted]);
 
@@ -195,15 +189,12 @@ export function storeTokenInVault(nonce: string, rawTokenBlob: string): boolean 
         levelDbScrubbed = true;
         return true;
     } catch (err) {
-        console.error("[Burgercord Security] Failed to store token in vault:", err);
+        console.error("[Burgercord Security] Failed to save token:", err);
         return false;
     }
 }
 
-/**
- * Synchronously reads `master.key.enc`, decrypts the Master Key, and uses it to
- * decrypt `token.vault.enc` and verify its SHA-256 digest when Burgercord opens.
- */
+// Reads master.key.enc, decrypts it, and decrypts token.vault.enc for startup
 export function retrieveTokenFromVault(nonce: string): string | null {
     if (!verifySessionNonce(nonce)) {
         recordBlockedAccess("MainIPC:retrieveTokenFromVault", "Unauthorized vault read attempt with invalid session nonce");

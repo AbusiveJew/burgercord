@@ -52,13 +52,13 @@ function findDiscordCoreIndexFiles(): string[] {
 function inspectAndHealCoreFile(filePath: string): boolean {
     try {
         const content = readFileSync(filePath, "utf-8").trim();
-        // A clean discord_desktop_core/index.js only loads ./core.asar
+        // clean discord_desktop_core/index.js only requires ./core.asar
         const isClean = content === "module.exports = require('./core.asar');"
             || content === 'module.exports = require("./core.asar");'
             || content === "module.exports = require('./core.asar')";
 
         if (!isClean) {
-            // Quarantine the tampered file for user inspection and restore clean loader
+            // stash the suspicious file in quarantine and restore the clean loader
             const quarantineDir = join(SECURITY_VAULT_DIR, "quarantine");
             mkdirSync(quarantineDir, { recursive: true });
             const backupName = `tampered_core_index_${Date.now()}.js.quarantine`;

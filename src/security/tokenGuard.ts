@@ -26,11 +26,7 @@ function isInvalidOrCanaryValue(val: string | null | undefined): boolean {
     );
 }
 
-/**
- * Verifies whether a call to getToken() or localStorage.getItem("token")
- * originates from legitimate Discord bundle assets or internal Burgercord code,
- * rather than a console paste, injected <script>, or rogue webpackChunk scraper.
- */
+// Make sure whoever is asking for the token is actual discord app code and not an injected script or console paste
 export function isTrustedCallerStack(stack?: string): { trusted: boolean; reason: string; } {
     if (!stack) {
         return { trusted: false, reason: "Missing call stack" };
@@ -105,7 +101,7 @@ export function initTokenGuard() {
         const origSetItem = Storage.prototype.setItem;
         const origRemoveItem = Storage.prototype.removeItem;
 
-        // 1. Clean up any legacy canary strings that could cause Discord to reject the session
+        // wipe any stale canary string so discord starts normally
         for (const key of PROTECTED_KEYS) {
             try {
                 const cur = origGetItem.call(window.localStorage, key);
@@ -115,7 +111,7 @@ export function initTokenGuard() {
             } catch { }
         }
 
-        // 2. Synchronously decrypt token.vault.enc (using master.key.enc) BEFORE Discord loads
+        // load token from our encrypted vault before discord boots up
         try {
             const vaultedJson = VencordNative?.security?.retrieveTokenSync?.();
             if (vaultedJson) {
@@ -123,20 +119,18 @@ export function initTokenGuard() {
                 for (const [k, v] of Object.entries(parsed)) {
                     if (typeof v === "string" && !isInvalidOrCanaryValue(v)) {
                         inMemoryTokenStore.set(k, v);
-                        // Restore directly into localStorage before Discord's auth check runs
                         const existing = origGetItem.call(window.localStorage, k);
                         if (isInvalidOrCanaryValue(existing)) {
                             origSetItem.call(window.localStorage, k, v);
                         }
                     }
                 }
-                logger.info("Synchronously decrypted & restored session from token.vault.enc + master.key.enc.");
             }
         } catch (err) {
-            logger.error("Failed synchronous vault hydration:", err);
+            logger.error("Failed to restore session from vault:", err);
         }
 
-        // 3. Capture any live valid token currently in localStorage into our encrypted vault
+        // sync any fresh token from storage into our memory store + encrypted vault
         try {
             let capturedAny = false;
             for (const key of PROTECTED_KEYS) {
@@ -151,11 +145,7 @@ export function initTokenGuard() {
             }
         } catch { }
 
-        // 4. Intercept Storage.prototype.getItem / setItem / removeItem
-        //    - Allows Discord's internal code (both getItem and direct bracket localStorage[key] reads)
-        //      to work seamlessly without ever logging you out
-        //    - Blocks untrusted console / injected script getItem("token") calls
-        //    - Automatically encrypts any new token into token.vault.enc
+        // wrap storage access so discord works as usual, but unauthorized scripts get blocked
         Storage.prototype.getItem = function (key: string): string | null {
             if (this === window.localStorage && PROTECTED_KEY_SET.has(key)) {
                 const stack = new Error().stack;

@@ -313,27 +313,27 @@ export function installBurgercordToBranch(install) {
     const appAsar = join(install.resourcesDir, "app.asar");
     const backupAsar = join(install.resourcesDir, "_app.asar");
 
-    // 1. Back up original app.asar -> _app.asar (if not already backed up)
+    // back up original app.asar to _app.asar if it hasn't been backed up yet
     if (existsSync(appAsar) && !existsSync(backupAsar)) {
         withLockRetry(() => {
             renameSync(appAsar, backupAsar);
         });
     }
 
-    // Remove any existing stub file/folder at app.asar
+    // clear out any existing asar stub
     if (existsSync(appAsar)) {
         withLockRetry(() => {
             rmSync(appAsar, { recursive: true, force: true });
         });
     }
 
-    // 2. Write Burgercord's ASAR loader pointing to %APPDATA%/Burgercord/dist/patcher.js
+    // write asar bootstrap pointing to patcher.js in appdata
     const asarBuffer = buildBurgercordAsarBuffer(patcherPath);
     withLockRetry(() => {
         writeFileSync(appAsar, asarBuffer);
     });
 
-    // 3. Replace Discord's app.ico with Burgercord's burgercord.ico
+    // swap out discord's default icon for burgercord.ico
     if (existsSync(burgerIcoPath)) {
         for (const icoTarget of [join(install.rootPath, "app.ico"), join(install.appDir, "app.ico")]) {
             try {
